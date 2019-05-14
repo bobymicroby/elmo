@@ -20,7 +20,8 @@ sealed class Msg {
     object Reverse : Msg()
 }
 class HelloWorldUpdate : UpdateIO<HelloWorldModel, Msg> {
-    override fun update(msg: Msg, model: HelloWorldModel): HelloWorldModel {
+   
+   override fun update(msg: Msg, model: HelloWorldModel): HelloWorldModel {
         return when (msg) {
             Msg.Reverse -> model.copy(title = model.title.reversed())
         }
