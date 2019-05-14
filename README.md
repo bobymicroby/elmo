@@ -19,6 +19,7 @@ data class HelloWorldModel(val title: String)
 sealed class Msg {
     object Reverse : Msg()
 }
+
 class HelloWorldUpdate : UpdateIO<HelloWorldModel, Msg> {
    
    override fun update(msg: Msg, model: HelloWorldModel): HelloWorldModel {
@@ -27,6 +28,7 @@ class HelloWorldUpdate : UpdateIO<HelloWorldModel, Msg> {
         }
     }
 }
+
 class HelloWorldActivity : Activity(), MainThreadView<HelloWorldModel> {
 
     private lateinit var sandbox: Sandbox<Msg>
