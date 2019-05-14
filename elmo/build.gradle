@@ -1,0 +1,33 @@
+apply plugin: 'java-library'
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'org.jetbrains.dokka'
+
+
+
+dependencies {
+    api deps.kotlin.stdlib
+    api deps.rxjava
+
+    testImplementation "io.kotlintest:kotlintest-runner-junit5:3.3.2"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.6"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.6"
+}
+
+dokka {
+
+    externalDocumentationLink {
+        url = new URL("http://reactivex.io/RxJava/2.x/javadoc/")
+    }
+}
+
+apply from: rootProject.file('gradle/mvn-push.gradle')
+

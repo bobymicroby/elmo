@@ -1,0 +1,21 @@
+language: android
+before_install:
+- mkdir "$ANDROID_HOME/licenses" || true
+- echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_HOME/licenses/android-sdk-license"
+jdk:
+- oraclejdk8
+after_success:
+- ".buildscript/deploy_snapshot.sh"
+branches:
+  except:
+  - gh-pages
+notifications:
+  email: false
+sudo: false
+cache:
+  directories:
+  - "$HOME/.m2"
+env:
+  global:
+  - secure: B2XSz2k37mPNcdMP/PuxcUprlJG8FBnV8L9ZTxT4rEtCN7LXMVi1nwOr+iFarSq2hEZq5mbihNW8d7+TX+q7XzL9IGdaDWMPxo9LWOgPH4p0Qk/Mj+85lLvBgRgnnQhNzvPn1LY9C+nWHuPlWd2Ymy5CYxPWiV0P0vfwTpFRMVoa9ufyLWJ9HhlzIbuG7BO8nNo/nuDQTPQbrczrOOK3W3elwD9DgjowlUlA+SXE5B9/KMPNh8WyF7w1tflBwhFKJW0MPYiMcf8/Zoovo00/RE7L1v0TbFzwgQrUqrjPiT5WAcW0heUdWN+ww+/d5MkPbBqDu/3QEQnt+7Lo4BZs/nPJQgS8Hx1XkbsZqEVMU+7Ae6dEcEozmGW/m5nruRJ5kLkm5ExH4V2pwa7a47Yj0bT9IEzDrUSpYFAb5RgoIKU4E3prAPmg8b3XrqtOgMJbjjc6c+4/EZq/3hUhWJ0An63VwgxESdBfHlgPK+1uVWxB/pLM9NZCVyhbMbqrQe/12HiXhbNXvtkdP0W9UrCAn6h5He4Raumm0z4zvqfbZnDRpPxVi04xvIYgRVH2FQ6Olgcjhj4SMZwtwqE9jejYAYkJWC2i2tudrHGD9arlfPrBE3rTZr6HCe//3iULyY/vnp5dIbmzC9EDKAM1pe7eLkHGBoGv8rsAB77sKcmtzCs=
+  - secure: F3v2IbzoGnS3zM0I81SONuGxDhwMk38eC16SFbEB/E5p/7brEzZ8aPLIoDRaM0NXZGTC3CuTpTBqBBxJj0O+rkn7fLtJb1GiJBTgByxh9JHI5VFuJ81gnhuR4wYMvfparNpxqSZolhgxR8oBWX25gM42gInxFrPkqdRAFMWZqQbPhoOAyYLhsDdmzQUL5A6fzyqlGHRI1LtlKRkEAV5je2/J4OSehjRGAVxJAVps1eMd+58IuBgDV6f8KYyhg1d27X+hH6my0sFcPogFYlztNgtH95bi2tNp5yf7poOmCrpiKWMjryQcMNVp2LfE54g1YEGeXSSl2cM8RSSNgibe4yBtSEC+1nSJ/cfE1rpc1D45SXFutiqoS1e43dNtm7MXbE2s3xsM0fObx3LywaJLr0rYbKKleNPMsDlAiPa8Iq+jayS7NIt1fnk7UnaOA0fO5ZJVkZKQCatXQmLgaRs9Y6lDFoA3w4XJaPmwy/YfvFsW7KAzE2iEfNTOuR5DkiSgT0iQr25inNoT4sr0s34qxBn5pZaSLsTQ2rdHSuakQZGhLNJcbb06MHoVh6F/zzDvUARMF4xXy5MQAR1gDnFj6bd6mbYdg5UC5mQ/K7xkXh7MWthKeaW/npnlqoan6VolU8/C0I+Vvfs5fwu+o22I833JV5zH9zBNtIsyGWijAW0=

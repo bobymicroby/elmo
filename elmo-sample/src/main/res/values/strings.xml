@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+  <string name="app_name">Elmo</string>
+  <string name="load_fortune">load fortune</string>
+    <string name="reverse">Reverse</string>
+
+
+</resources>

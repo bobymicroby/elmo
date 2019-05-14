@@ -1,0 +1,4 @@
+include ':elmo'
+include ':elmo-sample'
+
+rootProject.name = 'elmo-root'
