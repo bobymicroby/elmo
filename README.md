@@ -1,5 +1,6 @@
 
-<img src="logo.png" width="170">
+
+<img src="logo.png" width="170">[![Build Status](https://travis-ci.com/bobymicroby/elmo.svg?branch=master)](https://travis-ci.com/bobymicroby/elmo)
 
 
 Elmo is the Android framework from Badge that I use for nearly all product development at [Badge](https://badge.app). When I began creating Elmo, my goal was not to create yet another architecture pattern like MVP, MVC,MVVM, it was to allow even a single person to deliver a large scale application easier, faster, and to have fun in the process. 
@@ -8,11 +9,6 @@ Elmo will help you write your android applications in a modern, unidirectional a
 
 I am a firm believer in functional programming, and I know that for many Android developers this is still uncharted territory, but if you keep reading until the end, I promise you that you will rise again, harder and stronger! For what is immutable my never change!
 
-For those familiar with React, Elmo will feel a lot like Redux with fancy async middleware. For 
-those familiar with Elm, well it will be like Elm. And for those still unfamiliar with 
-unidirectional data flow architectures , immutable state-containers and the lot, it will be 
-something new and exciting to learn and it will empower you to write easy, fast and thread-safe UI 
-applications.
 
 What does it looks like:
 ```kotlin
@@ -51,8 +47,14 @@ class HelloWorldActivity : Activity(), MainThreadView<HelloWorldModel> {
 
 ```
 
+For those familiar with React, Elmo will feel a lot like Redux with fancy async middleware. For 
+those familiar with Elm, well it will be like Elm. And for those still unfamiliar with 
+unidirectional data flow architectures , immutable state-containers and the lot, it will be 
+something new and exciting to learn and it will empower you to write easy, fast and thread-safe UI 
+applications.
 
-[![Build Status](https://travis-ci.com/bobymicroby/elmo.svg?branch=master)](https://travis-ci.com/bobymicroby/elmo)
+
+
 
 * [Installation](#installation)
 
@@ -69,7 +71,7 @@ dependencies {
 
 ```
 
-Replace `x` and `y` and 'z' with the latest version number: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo)
+Replace `x` and `y` and `z` with the latest version number: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo)
 
 
 
