@@ -8,14 +8,70 @@ Elmo will help you write your android applications in a modern, unidirectional a
 
 I am a firm believer in functional programming, and I know that for many Android developers this is still uncharted territory, but if you keep reading until the end, I promise you that you will rise again, harder and stronger! For what is immutable my never change!
 
+For those familiar with React, Elmo will feel a lot like Redux with fancy async middleware. For 
+those familiar with Elm, well it will be like Elm. And for those still unfamiliar with 
+unidirectional data flow architectures , immutable state-containers and the lot, it will be 
+something new and exciting to learn and it will empower you to write easy, fast and thread-safe UI 
+applications.
+
+What does it looks like:
+```kotlin
+data class HelloWorldModel(val title: String)
+
+sealed class Msg {
+    object Reverse : Msg()
+}
+class HelloWorldUpdate : UpdateIO<HelloWorldModel, Msg> {
+    override fun update(msg: Msg, model: HelloWorldModel): HelloWorldModel {
+        return when (msg) {
+            Msg.Reverse -> model.copy(title = model.title.reversed())
+        }
+    }
+}
+class HelloWorldActivity : Activity(), MainThreadView<HelloWorldModel> {
+
+    private lateinit var sandbox: Sandbox<Msg>
+
+    override fun view(model: HelloWorldModel) {
+        textview.text = model.title
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.hello_activity)
+        sandbox = Sandbox.create(HelloWorldModel(title = "Hello World!"), HelloWorldUpdate(), this)
+        button.setOnClickListener { sandbox.accept(Msg.Reverse) }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        sandbox.dispose()
+    }
+}
+
+```
+
 
 [![Build Status](https://travis-ci.com/bobymicroby/elmo.svg?branch=master)](https://travis-ci.com/bobymicroby/elmo)
 
+* [Installation](#installation)
 
-Usage
-------
 
-( I am currently working on a tutorial and a blog post about elmo )
+
+## Installation
+
+Just add the dependency to your project `build.gradle` file:
+
+```groovy
+dependencies {
+  implementation 'dev.boby.elmo:elmo:x.y.z'
+}
+
+```
+
+Replace `x` and `y` and 'z' with the latest version number: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo)
+
+
 
 
 License
