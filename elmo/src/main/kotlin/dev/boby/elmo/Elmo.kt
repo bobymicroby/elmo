@@ -24,15 +24,23 @@ import io.reactivex.subjects.PublishSubject
  * @param Command Type of the commands that trigger side-effects.
  *
  * @property none Marks one of your Command classes as the none (no-op) command.
- * @property updateScheduler Used for executing [update] method calls and subscribing
- *                           to the observables returned from [call].
+ * @property updateScheduler Used for executing [update] method calls and subscribing to the
+ * observable returned from [call]
+ *
  *
  *
  */
 interface CommandUpdate<Model, Message, Command> {
 
-
+    /**
+     * Marks one of your Command classes as the none (no-op) command.
+     */
     val none: Command
+
+    /**
+     * Used for executing [update] method calls and subscribing
+     * to the observables returned from [call].
+     */
     val updateScheduler: Scheduler
 
 
@@ -104,6 +112,9 @@ interface CommandUpdate<Model, Message, Command> {
  */
 interface Update<Model, Message> {
 
+    /**
+     * Used for executing [update] method calls
+     */
     val updateScheduler: Scheduler
 
 
