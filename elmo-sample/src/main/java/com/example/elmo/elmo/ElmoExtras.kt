@@ -8,7 +8,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
 
-interface UpdateCommandIO<State, Msg, Cmd> : CommandUpdate<State, Msg, Cmd> {
+interface CommandUpdateIO<State, Msg, Cmd> : CommandUpdate<State, Msg, Cmd> {
 
     override val updateScheduler: Scheduler get() = Schedulers.io()
 }

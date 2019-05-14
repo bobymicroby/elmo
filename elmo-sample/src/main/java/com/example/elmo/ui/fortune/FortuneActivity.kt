@@ -4,7 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.core.view.isVisible
 import com.example.elmo.R
-import com.example.elmo.elmo.UpdateCommandIO
+import com.example.elmo.elmo.CommandUpdateIO
 import dev.boby.elmo.Sandbox
 import dev.boby.elmo.View
 import io.reactivex.Observable
@@ -24,7 +24,7 @@ sealed class Cmd {
     object CallFortuneApi : Cmd()
 }
 
-class Update : UpdateCommandIO<State, Msg, Cmd> {
+class Update : CommandUpdateIO<State, Msg, Cmd> {
     override val none: Cmd get() = Cmd.None
 
     override fun update(msg: Msg, model: State): Pair<State, Cmd> {

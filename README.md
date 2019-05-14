@@ -20,7 +20,7 @@ sealed class Msg {
     object Reverse : Msg()
 }
 
-class HelloWorldUpdate : UpdateIO<HelloWorldModel, Msg> {
+class HelloWorldUpdate : Update<HelloWorldModel, Msg> {
    
    override fun update(msg: Msg, model: HelloWorldModel): HelloWorldModel {
         return when (msg) {
@@ -29,7 +29,7 @@ class HelloWorldUpdate : UpdateIO<HelloWorldModel, Msg> {
     }
 }
 
-class HelloWorldActivity : Activity(), MainThreadView<HelloWorldModel> {
+class HelloWorldActivity : Activity(), View<HelloWorldModel> {
 
     private lateinit var sandbox: Sandbox<Msg>
 
@@ -82,8 +82,159 @@ Replace `x` and `y` and `z` with the latest version number: [![Maven Central](ht
 ## Core Concepts
 
 ### Model
-The state of your application. It must be immutable Kotlin data class that contains the properties 
-necessary to render your screen.
+The state of your application. It must be immutable Kotlin [data class](https://kotlinlang.org/docs/reference/data-classes.html) that contains the 
+properties  necessary to render your screen.
+
+Because the model updates are  done concurrently,utilising many of the cores available in modern phones, it is very important that
+the model is immutable.This means that you must always use [copy](https://kotlinlang.org/docs/reference/data-classes.html#copying) 
+in order to change your model.
+
+
+
+*Example*:
+
+```kotlin 
+
+data class WalletModel(val userName: String, val cents: Long)
+
+```
+
+
+### Update
+Provides a way to update your `Model` It specifies how the application's model changes in 
+response to  `Messages`  sent to it. If you prefer this term - it is the thing that handles all 
+business logic. 
+
+
+*Example*:
+
+```kotlin 
+
+class WalletUpdate : Update<WalletModel, Msg> {
+
+    override fun update(msg: Msg, model: WalletModel): WalletModel {
+        return when (msg) {
+            is Msg.Receive -> model.copy(cents = model.cents + msg.cents)
+            is Msg.Spend -> model.copy(cents = model.cents - msg.cents)
+        }
+    }
+}
+
+```
+
+
+
+
+
+### Messages
+
+Are what the `Update` reacts in order to to update your model. They can represent taps on the 
+screen, responses from external api, data from your phone sensors, etc.
+
+The `Message` types must form [sealed class](https://kotlinlang.org/docs/reference/sealed-classes.html) 
+hierarchies and must be immutable. Then you can use them to do pattern match in `return when` 
+statements as shown in the `Update` example. Also when you add new message type, the compiler
+will ask you to add the remaining branches in order for the `when` statement to be exhaustive, 
+saving you from bugs.
+
+
+*Example*:
+
+```kotlin 
+
+sealed class Msg { // The  base `Message` sealed class
+
+    data class Receive(val cents: Long) : Msg() // Receive message extends the base class
+    data class Spend(val cents: Long) : Msg()  // So does and the Spend
+}
+
+```
+
+
+
+### View
+
+Responsible for rendering your model on screen. It is a interface that is usually implemented in 
+your fragments or activities.
+
+*Example*:
+
+```kotlin 
+
+class WalletActivity : View<WalletModel>, Activity() {
+
+    override fun view(model: WalletModel) {
+        userName.text = model.userName
+        cents.text =model.cents
+    }
+}
+```
+
+
+### Commands 
+
+Used to trigger side-effects ( async api calls, etc) that can produce new 
+`Messages`.  The `Command` types must form sealed class hierarchies just like your `Message`.
+
+*Example*:
+
+```kotlin 
+
+sealed class Cmd {
+    data class RequestFromMom(val cents: Long) : Cmd()
+}
+
+```
+
+
+### Command Update
+
+This is more complex version of `Update` that can interact with the outside world, trigger 
+side-effects and handle errors. If your activity or fragment do not make api calls, or store
+things in a database, then use the simpler version.
+
+
+
+*Example*:
+
+```kotlin 
+
+class WalletCommandUpdate : CommandUpdate<WalletModel, Msg, Cmd> {
+
+    override val none: Cmd get() = Cmd.None
+
+    override fun update(msg: Msg, model: WalletModel): Pair<WalletModel, Cmd> {
+        return when (msg) {
+            is Msg.Receive -> Pair(model.copy(cents = model.cents + msg.cents), none)
+            is Msg.Spend -> {
+
+                val newModel = model.copy(cents = model.cents - msg.cents)
+
+                if (newModel.cents < 0) {
+                    Pair(newModel, Cmd.RequestFromMom(0 - newModel.cents))
+                } else {
+                    Pair(newModel, none)
+                }
+            }
+        }
+    }
+
+    override fun call(cmd: Cmd): Observable<out Msg> {
+        return when (cmd) {
+            is Cmd.RequestFromMom -> Observable.fromCallable {
+                Msg.Receive(cmd.cents)
+            }
+            Cmd.None -> Observable.empty() 
+        }
+    }
+    override fun onUnhandledError(cmd: Cmd, t: Throwable): Msg {
+        System.err.println("Error while processing $cmd: $t")
+        return Msg.Receive(0)
+    }
+}
+
+```
+
 
 
 
