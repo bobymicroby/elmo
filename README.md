@@ -79,6 +79,13 @@ dependencies {
 Replace `x` and `y` and `z` with the latest version number: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo)
 
 
+## Core Concepts
+
+### Model
+The state of your application. It must be immutable Kotlin data class that contains the properties 
+necessary to render your screen.
+
+
 
 
 License
