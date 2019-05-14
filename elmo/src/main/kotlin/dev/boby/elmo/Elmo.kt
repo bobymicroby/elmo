@@ -8,6 +8,14 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 
+
+sealed class Computation<out Message, out Command> {
+    abstract val model: Message
+}
+data class Pure<M>(override val model: M) : Computation<M, kotlin.Nothing>()
+data class Effect<M, C>(override val model: M, val cmd: C) : Computation<M, C>()
+
+
 /**
  *
  * A way to update your model and trigger side-effects (make async calls for example) . It specifies
@@ -32,10 +40,6 @@ import io.reactivex.subjects.PublishSubject
  */
 interface CommandUpdate<Model, Message, Command> {
 
-    /**
-     * Marks one of your Command classes as the none (no-op) command.
-     */
-    val none: Command
 
     /**
      * Used for executing [update] method calls and subscribing
@@ -56,7 +60,7 @@ interface CommandUpdate<Model, Message, Command> {
      *         a side-effect, return pair(state,[none]).
      *
      */
-    fun update(msg: Message, model: Model): Pair<Model, Command>
+    fun update(msg: Message, model: Model): Computation<Model, Command>
 
     /**
      *
@@ -191,7 +195,7 @@ abstract class Sandbox<Message> private constructor() : Disposable {
          *
          */
         fun <Model, Message, Command> create(
-                seed: Pair<Model, Command>,
+                seed: Computation<Model, Command>,
                 update: CommandUpdate<Model, Message, Command>,
                 view: View<Model>
         ): Sandbox<Message> {
@@ -200,13 +204,13 @@ abstract class Sandbox<Message> private constructor() : Disposable {
             val disposables = CompositeDisposable()
             val eventLoop = messages
                     .observeOn(update.updateScheduler)
-                    .scan(seed) { (model, _), msg -> update.update(msg, model) }
-                    .doOnNext { (_, cmd) ->
-                        if (cmd != update.none) {
+                    .scan(seed) { computation, msg -> update.update(msg, computation.model) }
+                    .doOnNext { computation ->
+                        if (computation is Effect) {
                             @Suppress("UNCHECKED_CAST")  //This is type-safe because the observable is covariant and read only.
-                            val call = update.call(cmd) as Observable<Message>
+                            val call = update.call(computation.cmd) as Observable<Message>
                             disposables.add(call
-                                    .onErrorReturn { t: Throwable -> update.onUnhandledError(cmd, t) }
+                                    .onErrorReturn { t: Throwable -> update.onUnhandledError(computation.cmd, t) }
                                     .subscribeOn(update.updateScheduler)
                                     .subscribe({ m -> messages.onNext(m) }, { e -> throw e }))
                         }
@@ -215,7 +219,7 @@ abstract class Sandbox<Message> private constructor() : Disposable {
 
             disposables.add(
                     eventLoop.subscribe(
-                            { (model, _) -> view.view(model) }
+                            { computation -> view.view(computation.model) }
                             , { e -> throw e }
                     )
             )

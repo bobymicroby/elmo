@@ -1,9 +1,7 @@
 package dev.boby.elmo.sandbox.command
 
-import dev.boby.elmo.Sandbox
+import dev.boby.elmo.*
 import dev.boby.elmo.testutil.TestView
-
-import dev.boby.elmo.CommandUpdate
 
 
 import io.kotlintest.properties.Gen
@@ -32,7 +30,7 @@ sealed class Msg {
 }
 
 sealed class Cmd {
-    object None : Cmd()
+
     object Increment : Cmd()
     data class TriggerError(val t: Throwable) : Cmd()
 }
@@ -48,23 +46,14 @@ class DelayingCommandsUpdate(private val delayNs: Long, override val updateSched
     }
 
 
-    override val none: Cmd
-        get() = Cmd.None
-
-
-    override fun update(msg: Msg, model: State): Pair<State, Cmd> {
+    override fun update(msg: Msg, model: State): Computation<State, Cmd> {
         messages += msg
         return when (msg) {
-            Msg.Noop -> Pair(model, Cmd.None)
-            Msg.RequestIncrement -> Pair(model, Cmd.Increment)
-            Msg.Incremented -> Pair(model.copy(counter = model.counter + 1), Cmd.None)
-            Msg.Decrement -> {
-                Pair(model.copy(counter = model.counter - 1), Cmd.None)
-            }
-            is Msg.Error -> {
-
-                Pair(model.copy(counter = Integer.MIN_VALUE), Cmd.None)
-            }
+            Msg.Noop -> Pure(model)
+            Msg.RequestIncrement -> Effect(model, Cmd.Increment)
+            Msg.Incremented -> Pure(model.copy(counter = model.counter + 1))
+            Msg.Decrement ->  Pure(model.copy(counter = model.counter - 1))
+            is Msg.Error ->  Pure(model.copy(counter = Integer.MIN_VALUE))
         }
 
 
@@ -74,7 +63,6 @@ class DelayingCommandsUpdate(private val delayNs: Long, override val updateSched
 
         commands += cmd
         return when (cmd) {
-            Cmd.None -> empty()
             Cmd.Increment -> just(Msg.Incremented).delay(
                     delayNs,
                     TimeUnit.NANOSECONDS,
@@ -98,7 +86,7 @@ class CommandUpdateTest : StringSpec() {
 
                 val view = TestView<State>(Schedulers.io())
                 val update = DelayingCommandsUpdate(1000, Schedulers.io())
-                val seed = Pair(State(0), Cmd.Increment)
+                val seed = Effect(State(0), Cmd.Increment)
                 val sandbox = Sandbox.create(seed, update, view)
 
 
@@ -133,7 +121,7 @@ class CommandUpdateTest : StringSpec() {
             val scheduler = TestScheduler()
             val view = TestView<State>(scheduler)
             val update = DelayingCommandsUpdate(commandExecutionDelay, scheduler)
-            val seed = Pair(State(0), Cmd.Increment)
+            val seed = Effect(State(0), Cmd.Increment)
             val sandbox = Sandbox.create(seed, update, view)
 
             scheduler.triggerActions()
@@ -159,7 +147,7 @@ class CommandUpdateTest : StringSpec() {
             val sameThreadScheduler = Schedulers.trampoline()
             val view = TestView<State>(sameThreadScheduler)
             val update = DelayingCommandsUpdate(1000, sameThreadScheduler)
-            val seed = Pair(State(0), Cmd.Increment)
+            val seed = Effect(State(0), Cmd.Increment)
 
             val sandbox = Sandbox.create(seed, update, view)
 
@@ -181,7 +169,7 @@ class CommandUpdateTest : StringSpec() {
             val update = DelayingCommandsUpdate(0, Schedulers.trampoline())
             val error = RuntimeException("Snap!")
             val cmdErr = Cmd.TriggerError(error)
-            val seed = Pair(State(0), cmdErr)
+            val seed = Effect(State(0), cmdErr)
             val sandbox = Sandbox.create(seed, update, view)
 
             update.commands shouldBe listOf(cmdErr)
