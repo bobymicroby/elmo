@@ -9,11 +9,13 @@ import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 
 
-sealed class Computation<out Message, out Command> {
-    abstract val model: Message
+sealed class Computation<out Model, out Command> {
+    abstract val model: Model
 }
-data class Pure<M>(override val model: M) : Computation<M, kotlin.Nothing>()
-data class Effect<M, C>(override val model: M, val cmd: C) : Computation<M, C>()
+
+data class Pure<Model>(override val model: Model) : Computation<Model, kotlin.Nothing>()
+data class Effect<Model, Command>(override val model: Model, val cmd: Command) : Computation<Model, Command>()
+
 
 
 /**
@@ -188,14 +190,14 @@ abstract class Sandbox<Message> private constructor() : Disposable {
          * done with it. So if you are a Android Engineer, call [create] in your
          * Activity.onCreate and call [dispose] in your Activity.onDestroy
          *
-         * @param seed The initial state of the program, if you don't want to trigger a side
-         *             effect right away, start with pair(state,[Update.none])
+         * @param initial The initial state of the program, if you don't want to trigger a side
+         *             effect right away use Pure(model), otherwise use Effect(model,cmd)
          * @param update The [CommandUpdate] which will be used in the program's update event-loop
          * @param view The [View] which will receive [Model] updates
          *
          */
         fun <Model, Message, Command> create(
-                seed: Computation<Model, Command>,
+                initial: Computation<Model, Command>,
                 update: CommandUpdate<Model, Message, Command>,
                 view: View<Model>
         ): Sandbox<Message> {
@@ -204,7 +206,7 @@ abstract class Sandbox<Message> private constructor() : Disposable {
             val disposables = CompositeDisposable()
             val eventLoop = messages
                     .observeOn(update.updateScheduler)
-                    .scan(seed) { computation, msg -> update.update(msg, computation.model) }
+                    .scan(initial) { computation, msg -> update.update(msg, computation.model) }
                     .doOnNext { computation ->
                         if (computation is Effect) {
                             @Suppress("UNCHECKED_CAST")  //This is type-safe because the observable is covariant and read only.
@@ -246,13 +248,13 @@ abstract class Sandbox<Message> private constructor() : Disposable {
          * with it. So if you are  a Android Engineer, call [create] in your Activity.onCreate
          * and call [dispose] in your Activity.onDestroy
          *
-         * @param seed The initial state of the program
+         * @param initial The initial model of the program
          * @param update The [Update] which will be used in the program's update event-loop
          * @param view The [View] which will receive [Model] updates
          *
          */
         fun <Model, Message> create(
-                seed: Model,
+                initial: Model,
                 update: Update<Model, Message>,
                 view: View<Model>
         ): Sandbox<Message> {
@@ -260,7 +262,7 @@ abstract class Sandbox<Message> private constructor() : Disposable {
             val messages = PublishSubject.create<Message>().toSerialized()
             val disposable = messages
                     .observeOn(update.updateScheduler)
-                    .scan(seed) { model, msg -> update.update(msg, model) }
+                    .scan(initial) { model, msg -> update.update(msg, model) }
                     .observeOn(view.viewScheduler)
                     .subscribe({ model -> view.view(model) }, { e -> throw e })
 
