@@ -187,33 +187,39 @@ sealed class Cmd {
 ```
 
 
-### Command Update
+### Update with side-effects
 
-This is more complex version of `Update` that can interact with the outside world, trigger 
-side-effects and handle errors. If your activity or fragment do not make api calls, or store
-things in a database, then use the simpler version.
+There is another version of `Update` that can interact with the outside world, trigger 
+side-effects and handle errors. In order to do so, there are two things that you must do:
 
+- Describe how to get `Observable<Msg>` from a `Command`
+- Provide a way to transform  unhandled errors back to `Messages`.
+
+
+Return either a `Pure(model)`  or `Effect(model,command)`. You can think of Pure like it is a pair(model,`none`)
+and of Effect like it is a pair(model,command).  
+
+
+[RxJava](https://github.com/ReactiveX/RxJava) `Observables` can be [created](https://github.com/ReactiveX/RxJava/wiki/Creating-Observables)
+from most standard types and many http-clients, database drivers, etc, already provide RxJava 
+adapters. If you are new to RxJava elmo can help you use it while you learn it.
 
 
 *Example*:
 
 ```kotlin 
 
-class WalletCommandUpdate : CommandUpdate<WalletModel, Msg, Cmd> {
+class WalletUpdate : effect.Update<WalletModel, Msg, Cmd> {
 
-    override val none: Cmd get() = Cmd.None
-
-    override fun update(msg: Msg, model: WalletModel): Pair<WalletModel, Cmd> {
+    override fun update(msg: Msg, model: WalletModel): Return<WalletModel, Cmd> {
         return when (msg) {
-            is Msg.Receive -> Pair(model.copy(cents = model.cents + msg.cents), none)
+            is Msg.Receive -> Pure(model.copy(cents = model.cents + msg.cents))
             is Msg.Spend -> {
-
                 val newModel = model.copy(cents = model.cents - msg.cents)
-
                 if (newModel.cents < 0) {
-                    Pair(newModel, Cmd.RequestFromMom(0 - newModel.cents))
+                    Effect(newModel, Cmd.RequestFromMom(0 - newModel.cents))
                 } else {
-                    Pair(newModel, none)
+                    Pure(newModel)
                 }
             }
         }
@@ -222,19 +228,23 @@ class WalletCommandUpdate : CommandUpdate<WalletModel, Msg, Cmd> {
     override fun call(cmd: Cmd): Observable<out Msg> {
         return when (cmd) {
             is Cmd.RequestFromMom -> Observable.fromCallable {
-                Msg.Receive(cmd.cents)
+                Msg.Receive(cmd.cents) //this can be a async http call or database read or any other side effect
             }
-            Cmd.None -> Observable.empty() 
         }
     }
+
     override fun onUnhandledError(cmd: Cmd, t: Throwable): Msg {
         System.err.println("Error while processing $cmd: $t")
         return Msg.Receive(0)
     }
+
+
 }
 
 ```
 
+
+### Error handling
 
 
 
