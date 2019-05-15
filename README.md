@@ -253,17 +253,27 @@ Usually you will want to transform them back to Message.
 - Fatal errors from `update` method calls and from Commands will crash your application
 
 
-It is best to handle specific Command errors at declaration site using the `Result` type
 
+### Result
+
+You can deal with specific Command errors at declaration site using `onErrorReturn` and the `Result` type
+
+ 
+The Result type represents values with two possibilities: 
+a value of type `Result<E,A>` is either `Err<E>` or `Ok<A>`.
+
+The Result type is sometimes used to  represent a computation that may fail and it is a great
+way to manage errors. The `Err` constructor is used to hold an error value and the `Ok`
+constructor is used to hold a correct value.
+ 
 Example :
 
     
 ```kotlin
 sealed class Msg {
     /**
-     * The Result type represents values with two possibilities.
-     * In this case it's either Err<String> ( representing the error ) or  Ok<Long> ( representing the cents received )
-     */
+    *In this case the Err type is String ( error message ) and the Ok type is Long ( cents received)  
+    */
     data class BankResponse(val result: Result<String, Long>) : Msg()
 }
 
@@ -300,15 +310,6 @@ class WalletUpdate : Update<WalletModel, Msg, Cmd> {
 }
 
 ```    
-
-
-
-
-
-
-
-
-
 
 License
 -------
