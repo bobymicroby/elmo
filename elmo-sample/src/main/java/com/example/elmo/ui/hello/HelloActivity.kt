@@ -3,8 +3,8 @@ package com.example.elmo.ui.hello
 import android.app.Activity
 import android.os.Bundle
 import com.example.elmo.R
-import com.example.elmo.elmo.MainThreadView
-import com.example.elmo.elmo.UpdateIO
+import com.example.elmo.elmo.extras.View
+import com.example.elmo.elmo.extras.pure.UpdateIO
 import dev.boby.elmo.Sandbox
 import kotlinx.android.synthetic.main.hello_activity.*
 
@@ -13,6 +13,7 @@ data class HelloWorldModel(val title: String)
 sealed class Msg {
     object Reverse : Msg()
 }
+
 class HelloWorldUpdate : UpdateIO<HelloWorldModel, Msg> {
     override fun update(msg: Msg, model: HelloWorldModel): HelloWorldModel {
         return when (msg) {
@@ -20,7 +21,8 @@ class HelloWorldUpdate : UpdateIO<HelloWorldModel, Msg> {
         }
     }
 }
-class HelloWorldActivity : Activity(), MainThreadView<HelloWorldModel> {
+
+class HelloWorldActivity : Activity(), View<HelloWorldModel> {
 
     private lateinit var sandbox: Sandbox<Msg>
 

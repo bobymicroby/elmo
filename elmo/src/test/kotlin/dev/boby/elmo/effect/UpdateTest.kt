@@ -1,9 +1,7 @@
-package dev.boby.elmo.sandbox.command
+package dev.boby.elmo.effect
 
 import dev.boby.elmo.*
 import dev.boby.elmo.testutil.TestView
-
-
 import io.kotlintest.properties.Gen
 import io.kotlintest.properties.forAll
 import io.kotlintest.shouldBe
@@ -36,7 +34,8 @@ sealed class Cmd {
 }
 
 
-class DelayingCommandsUpdate(private val delayNs: Long, override val updateScheduler: Scheduler) : CommandUpdate<State, Msg, Cmd> {
+class DelayingCommandsUpdate(private val delayNs: Long, override val updateScheduler: Scheduler)
+    : Update<State, Msg, Cmd> {
 
     val commands = CopyOnWriteArrayList<Cmd>()
     val messages = CopyOnWriteArrayList<Msg>()
@@ -46,17 +45,15 @@ class DelayingCommandsUpdate(private val delayNs: Long, override val updateSched
     }
 
 
-    override fun update(msg: Msg, model: State): Computation<State, Cmd> {
+    override fun update(msg: Msg, model: State): Return<State, Cmd> {
         messages += msg
         return when (msg) {
-            Msg.Noop -> Pure(model)
-            Msg.RequestIncrement -> Effect(model, Cmd.Increment)
-            Msg.Incremented -> Pure(model.copy(counter = model.counter + 1))
-            Msg.Decrement ->  Pure(model.copy(counter = model.counter - 1))
-            is Msg.Error ->  Pure(model.copy(counter = Integer.MIN_VALUE))
+            Msg.Noop -> model + None
+            Msg.RequestIncrement -> model + Cmd.Increment
+            Msg.Incremented -> model.copy(counter = model.counter + 1) + None
+            Msg.Decrement -> model.copy(counter = model.counter - 1) + None
+            is Msg.Error -> model.copy(counter = Integer.MIN_VALUE) + None
         }
-
-
     }
 
     override fun call(cmd: Cmd): Observable<out Msg> {
@@ -76,7 +73,7 @@ class DelayingCommandsUpdate(private val delayNs: Long, override val updateSched
 }
 
 
-class CommandUpdateTest : StringSpec() {
+class UpdateTest : StringSpec() {
     private val msgGen = Gen.list(Gen.from(listOf(Msg.Noop, Msg.RequestIncrement, Msg.Decrement)))
 
     init {

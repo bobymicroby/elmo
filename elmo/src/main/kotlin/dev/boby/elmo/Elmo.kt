@@ -9,134 +9,54 @@ import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 
 
-sealed class Computation<out Model, out Command> {
+/**
+ *
+ * The return type of the side-effecting [dev.boby.elmo.effect.Update] containing:
+ *
+ *  -- in its [Pure] variant just the updated model
+ *  -- in its [Effect] variant the updated model and a command to execute
+ */
+sealed class Return<out Model, out Command> {
     abstract val model: Model
 }
 
-data class Pure<Model>(override val model: Model) : Computation<Model, kotlin.Nothing>()
-data class Effect<Model, Command>(override val model: Model, val cmd: Command) : Computation<Model, Command>()
+/**
+ * You can think of the pure variant of [Result] as a type alias for pair(model,none)
+ */
+data class Pure<Model>(override val model: Model) : Return<Model, kotlin.Nothing>()
 
+/**
+ * You can think of the effect variant of [Result] as a type alias for pair(model,cmd)
+ */
+data class Effect<Model, Command>(override val model: Model, val cmd: Command) : Return<Model, Command>()
 
 
 /**
+ * Syntactic sugar for creating a [Pure], and we all now that too much sugar is bad for your
+ * health.
  *
- * A way to update your model and trigger side-effects (make async calls for example) . It specifies
- * how the application's model changes in response to Messages and Commands sent to it. All code is
- * executed on the [updateScheduler]
- *
- * You Model must be immutable data class and you should always use the `copy` function inside
- * the [update] method in order to change the model .The Message and Command types
- * should  be immutable and form [sealed class](https://kotlinlang.org/docs/reference/sealed-classes.html)
- * hierarchies (aka Algebraic data types). Otherwise you risk facing concurrency problems.
- *
- * @param Model Type of the application state.
- * @param Message Type of the messages.
- * @param Command Type of the commands that trigger side-effects.
- *
- * @property none Marks one of your Command classes as the none (no-op) command.
- * @property updateScheduler Used for executing [update] method calls and subscribing to the
- * observable returned from [call]
- *
- *
+ * Example:
+ * model + none == Pure(model)
  *
  */
-interface CommandUpdate<Model, Message, Command> {
+operator fun <Model, Command> Model.plus(@Suppress("UNUSED_PARAMETER") none: None): Return<Model,
+        Command> = Pure(this)
 
-
-    /**
-     * Used for executing [update] method calls and subscribing
-     * to the observables returned from [call].
-     */
-    val updateScheduler: Scheduler
-
-
-    /**
-     *
-     * Updates the current application state and provides a way to schedule the execution
-     * of a Command (side-effect)
-     *
-     * @param msg Incoming message.
-     * @param model Current application state.
-     *
-     * @return new state and a command (side-effect) to execute. If you don't wish to execute
-     *         a side-effect, return pair(state,[none]).
-     *
-     */
-    fun update(msg: Message, model: Model): Computation<Model, Command>
-
-    /**
-     *
-     * This function serves as a repository, mapping each command to a way to receive
-     * (probably asynchronously) a stream of messages. Elmo doesn't require you to have a deep
-     * knowledge of RxJava's [Observable] to use it, because there is already a easy way for
-     * [creating observables](https://github.com/ReactiveX/RxJava/wiki/Creating-Observables)
-     * from various types. If this is not enough, there are tons of open-source interop libraries.
-     *
-     * The returned Observable will be subscribed on the provided [updateScheduler]
-     *
-     * @param cmd The Command which will trigger a subscription for a stream of messages
-     * @return A stream of messages
-     *
-     */
-    fun call(cmd: Command): Observable<out Message>
-
-
-    /**
-     * If one of your commands throws an unhandled exception this method is responsible
-     * for transforming it to message. Usually this message signature will look like:
-     * `data class Error(cmd: Command, t: Throwable) : Message()`
-     *
-     * Only non-fatal errors will be forwarded, the fatal ones will destroy the Sandbox as expected,
-     * and will propagate up the stack.
-     *
-     * For commands that are expected to throw exceptions like network calls you your [Command]
-     * should return a [Message] that contains a [Result] that can be either [Ok] or [Err] .
-     * If you don't need information about the error you can use a [Message] that contains [Maybe].
-     *
-     */
-    fun onUnhandledError(cmd: Command, t: Throwable): Message
-}
-
+/* Marks that there are no commands.*/
+object None
 
 /**
+ * Syntactic sugar for creating a [Effect], and we all now that too much sugar is bad for
+ * your health.
  *
- * A way to update your model,  It specifies how the application's model changes in response to
- * Messages  sent to it. All [update] calls are executed on the [updateScheduler]
- *
- * You Model must be immutable data class and you should always use the `copy` function inside
- * the [update] method in order to change the model .The Message type
- * should  be immutable and form [sealed class](https://kotlinlang.org/docs/reference/sealed-classes.html)
- * hierarchies (aka Algebraic data types). Otherwise you risk facing concurrency problems.
- *
- * @param Model Type of the application state.
- * @param Message Type of the messages.
- *
- * @property updateScheduler Used for executing [update] method calls and subscribing
- *                           to the observables returned from [call].
- *
+ * Example:
+ * model + Cmd.Increment == Effect(model,Cmd.Increment)
  *
  */
-interface Update<Model, Message> {
-
-    /**
-     * Used for executing [update] method calls
-     */
-    val updateScheduler: Scheduler
+operator fun <Model, Command> Model.plus(that: Command): Return<Model, Command> = Effect(this, that)
 
 
-    /**
-     *
-     * Updates the current application state
-     *
-     * @param msg Incoming message.
-     * @param model Current application state.
-     *
-     * @return new state
-     */
-    fun update(msg: Message, model: Model): Model
 
-
-}
 
 /**
  * Receives all view updates . Should be used to render your model on screen.
@@ -149,7 +69,7 @@ interface View<Model> {
     val viewScheduler: Scheduler
 
     /**
-     * Called every time the [CommandUpdate] produces a new model. Used to display
+     * Called every time the Update produces a new model. Used to display
      * the model in the UI
      *
      * @param model the latest model to display
@@ -192,13 +112,13 @@ abstract class Sandbox<Message> private constructor() : Disposable {
          *
          * @param initial The initial state of the program, if you don't want to trigger a side
          *             effect right away use Pure(model), otherwise use Effect(model,cmd)
-         * @param update The [CommandUpdate] which will be used in the program's update event-loop
+         * @param update The [dev.boby.elmo.effect.Update] which will be used in the program's update event-loop
          * @param view The [View] which will receive [Model] updates
          *
          */
         fun <Model, Message, Command> create(
-                initial: Computation<Model, Command>,
-                update: CommandUpdate<Model, Message, Command>,
+                initial: Return<Model, Command>,
+                update: dev.boby.elmo.effect.Update<Model, Message, Command>,
                 view: View<Model>
         ): Sandbox<Message> {
 
@@ -249,13 +169,14 @@ abstract class Sandbox<Message> private constructor() : Disposable {
          * and call [dispose] in your Activity.onDestroy
          *
          * @param initial The initial model of the program
-         * @param update The [Update] which will be used in the program's update event-loop
+         * @param update The [dev.boby.elmo.pure.Update] which will be used in the program's update
+         * event-loop
          * @param view The [View] which will receive [Model] updates
          *
          */
         fun <Model, Message> create(
                 initial: Model,
-                update: Update<Model, Message>,
+                update: dev.boby.elmo.pure.Update<Model, Message>,
                 view: View<Model>
         ): Sandbox<Message> {
 

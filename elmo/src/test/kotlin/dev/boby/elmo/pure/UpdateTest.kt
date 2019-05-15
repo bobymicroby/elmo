@@ -1,8 +1,8 @@
-package dev.boby.elmo.sandbox.update
+package dev.boby.elmo.pure
 
 import dev.boby.elmo.Sandbox
 import dev.boby.elmo.testutil.TestView
-import dev.boby.elmo.Update
+
 
 
 import io.kotlintest.properties.Gen

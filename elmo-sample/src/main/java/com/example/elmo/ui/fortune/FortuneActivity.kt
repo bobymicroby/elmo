@@ -4,11 +4,15 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.core.view.isVisible
 import com.example.elmo.R
-import com.example.elmo.elmo.UpdateCommandIO
-import dev.boby.elmo.*
+import com.example.elmo.elmo.extras.View
+import com.example.elmo.elmo.extras.effect.UpdateIO
+import dev.boby.elmo.Effect
+import dev.boby.elmo.Pure
+import dev.boby.elmo.Return
+import dev.boby.elmo.Sandbox
+
 import io.reactivex.Observable
-import io.reactivex.Scheduler
-import io.reactivex.android.schedulers.AndroidSchedulers
+
 import kotlinx.android.synthetic.main.demo_activity.*
 
 import java.net.URL
@@ -18,13 +22,14 @@ sealed class Msg {
     object Refresh : Msg()
     data class Fortune(val fortune: String) : Msg()
 }
+
 sealed class Cmd {
     object CallFortuneApi : Cmd()
 }
 
-class Update : UpdateCommandIO<State, Msg, Cmd> {
+class Update : UpdateIO<State, Msg, Cmd> {
 
-    override fun update(msg: Msg, model: State): Computation<State, Cmd> {
+    override fun update(msg: Msg, model: State): Return<State, Cmd> {
         return when (msg) {
             Msg.Refresh -> Effect(model.copy(loading = true), Cmd.CallFortuneApi)
             is Msg.Fortune -> Pure(model.copy(loading = false, fortune = msg.fortune))
@@ -38,13 +43,14 @@ class Update : UpdateCommandIO<State, Msg, Cmd> {
             }
         }
     }
+
     override fun onUnhandledError(cmd: Cmd, t: Throwable): Msg {
         return Msg.Fortune("Snap! Cannot load a fortune right now. ")
     }
 }
 
 class FortuneActivity : Activity(), View<State> {
-    override val viewScheduler: Scheduler get() = AndroidSchedulers.mainThread()
+
     private lateinit var sandbox: Sandbox<Msg>
 
     override fun view(model: State) {
