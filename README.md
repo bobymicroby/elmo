@@ -53,7 +53,7 @@ class HelloWorldActivity : Activity(), View<HelloWorldModel> {
 ```
 
 For those familiar with React, Elmo will feel a lot like Redux with fancy async middleware. For 
-those familiar with Elm, well it will be like Elm. And for those still unfamiliar with 
+those familiar with Elm, well it will look a lot like Elm. And for those still unfamiliar with 
 unidirectional data flow architectures , immutable state-containers and the lot, it will be 
 something new and exciting to learn and it will empower you to write easy, fast and thread-safe UI 
 applications.
@@ -190,18 +190,18 @@ sealed class Cmd {
 ### Update with side-effects
 
 There is another version of `Update` that can interact with the outside world, trigger 
-side-effects and handle errors. In order to do so, there are two things that you must do:
+side-effects and handle errors. In order to do so, there are three things that you must do:
 
 - Describe how to get `Observable<Msg>` from a `Command`
 - Provide a way to transform  unhandled errors back to `Messages`.
+- Return either a `Pure(model)`  or `Effect(model,command)`
 
 
-Return either a `Pure(model)`  or `Effect(model,command)`. You can think of Pure like it is a pair(model,`none`)
-and of Effect like it is a pair(model,command).  
+> You can think of Pure like it is a pair(model,`none`) and of Effect like it is a pair(model,command).
 
 
-[RxJava](https://github.com/ReactiveX/RxJava) `Observables` can be [created](https://github.com/ReactiveX/RxJava/wiki/Creating-Observables)
-from most standard types and many http-clients, database drivers, etc, already provide RxJava 
+>[RxJava](https://github.com/ReactiveX/RxJava) `Observables` can be [created](https://github.com/ReactiveX/RxJava/wiki/Creating-Observables)
+from most standard types and many http-clients, database drivers, etc, provide RxJava 
 adapters. If you are new to RxJava elmo can help you use it while you learn it.
 
 
@@ -245,6 +245,71 @@ class WalletUpdate : effect.Update<WalletModel, Msg, Cmd> {
 
 
 ### Error handling
+
+How the `Update` deal with errors:
+
+- Runtime errors in `update` method calls will crash your application, and they should because they show
+a bug in the code and lack of tests.
+
+- Unhandled errors from Commands will be delivered to `onUnhandledError` where you can deal with them.
+Usually you will want to transform them back to Message.
+
+- Fatal errors from `update` method calls and from Commands will crash your application
+
+
+It is best to handle specific Command errors at declaration site using the `Result` type
+
+Example :
+
+    
+```kotlin
+sealed class Msg {
+    /**
+     * The Result type represents values with two possibilities.
+     * In this case it's either Err<String> ( representing the error ) or  Ok<Long> ( representing the cents received )
+     */
+    data class BankResponse(val result: Result<String, Long>) : Msg()
+}
+
+sealed class Cmd {
+    data class RequestFromBankApi(val cents: Long) : Cmd()
+}
+
+class WalletUpdate : Update<WalletModel, Msg, Cmd> {
+
+    override fun update(msg: Msg, model: WalletModel): Return<WalletModel, Cmd> {
+        return when (msg) {
+            is Msg.BankResponse -> {
+                when (msg.result) {
+                    is Ok -> Pure(model.copy(cents = model.cents + msg.result.value))
+                    is Err -> Pure(model)
+                }
+            }
+        }
+    }
+
+    override fun call(cmd: Cmd): Observable<out Msg> {
+        return when (cmd) {
+            is Cmd.RequestFromBankApi -> Observable.fromCallable {
+                if (cmd.cents > 100) {
+                    throw RuntimeException()
+                } else {
+                Msg.BankResponse( Ok(cmd.cents) )
+                }
+               
+            }.onErrorReturn { t -> Msg.BankResponse( Err("Snap!")) } 
+        }
+    }
+    
+}
+
+```    
+
+
+
+
+
+
 
 
 
