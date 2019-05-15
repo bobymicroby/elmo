@@ -60,6 +60,26 @@ applications.
 
 I am working on a tutorial in a series of blog posts that you can find on my [blog](https://boby.dev)
 
+* [Installation](#installation)
+* [Model](#Model)
+* [Update](#Update)
+* [Messages](#Messages)
+* [View](#View)
+* [Update with side-effects](#update-with-side-effects)
+* [Error handling](#error-handling)
+* [Result](#Result)
+* [Multithreading](#Multithreading)
+* [Testing pure code](#testing-pure-code)
+* [Testing code with side-effects in a pure way](#testing-code-with-side-effects-in-a-pure-way)
+* [Testing code with side-effects by mocking](#testing-code-with-side-effects-by-mocking)
+* [Working with lists](#working-with-lists)
+
+
+
+
+
+
+
 
 ## Installation
 
@@ -75,9 +95,9 @@ dependencies {
 Replace `x` and `y` and `z` with the latest version number: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo)
 
 
-## Core Concepts
 
-### Model
+
+## Model
 The state of your application. It must be immutable Kotlin [data class](https://kotlinlang.org/docs/reference/data-classes.html) that contains the 
 properties  necessary to render your screen.
 
@@ -96,7 +116,7 @@ data class WalletModel(val userName: String, val cents: Long)
 ```
 
 
-### Update
+## Update
 Provides a way to update your `Model` It specifies how the application's model changes in 
 response to  `Messages`  sent to it. If you prefer this term - it is the thing that handles all 
 business logic. 
@@ -122,7 +142,7 @@ class WalletUpdate : Update<WalletModel, Msg> {
 
 
 
-### Messages
+## Messages
 
 Are what the `Update` reacts in order to to update your model. They can represent taps on the 
 screen, responses from external api, data from your phone sensors, etc.
@@ -148,7 +168,7 @@ sealed class Msg { // The  base `Message` sealed class
 
 
 
-### View
+## View
 
 Responsible for rendering your model on screen. It is a interface that is usually implemented in 
 your fragments or activities.
@@ -167,7 +187,7 @@ class WalletActivity : View<WalletModel>, Activity() {
 ```
 
 
-### Commands 
+## Commands 
 
 Used to trigger side-effects ( async api calls, etc) that can produce new 
 `Messages`.  The `Command` types must form sealed class hierarchies just like your `Message`.
@@ -183,7 +203,7 @@ sealed class Cmd {
 ```
 
 
-### Update with side-effects
+## Update with side-effects
 
 There is another version of `Update` that can interact with the outside world, trigger 
 side-effects and handle errors. In order to do so, there are three things that you must do:
@@ -240,7 +260,7 @@ adapters. If you are new to RxJava elmo can help you use it while you learn it.
 
 
 
-### Error handling
+## Error handling
 
 How the `Update` deal with errors:
 
@@ -254,7 +274,7 @@ Usually you will want to transform them back to Message.
 
 
 
-### Result
+## Result
 
 You can deal with specific Command errors at declaration site using `onErrorReturn` and the `Result` type
 
@@ -311,7 +331,7 @@ class WalletUpdate : Update<WalletModel, Msg, Cmd> {
 
 ```    
 
-### Multithreading
+## Multithreading
 
 RxJava is so popular with Android developers because it makes switching computation contexts easy.
 Elmo makes it even easier. What most of you want is to render your model on your main thread,
@@ -340,10 +360,7 @@ You can then extend this interfaces everywhere in your app.
 > AndroidSchedulers.mainThread() is courtesy of the [RxAndroid](https://github.com/ReactiveX/RxAndroid) authors
 
 
-### Testing pure code
-
-
-
+## Testing pure code
 
 Testing pure `Update` is pretty straightforward. We can just pass a test model and a message to the update function and assert we have the correct response.
 This is why it is very important the update function is kept [referentially transparent](https://en.wikipedia.org/wiki/Referential_transparency),
@@ -377,7 +394,7 @@ class Test {
 
 ```
 
-### Testing code with side-effects in a pure way
+## Testing code with side-effects in a pure way
 
 Testing asynchronous side-effects is always hard and the test results struggle to reach 100% reliability.
 Some languages and tools make it reasonable enough. Elmo allows you to test your logic without executing
@@ -436,7 +453,7 @@ Since exceptions from commands are always transformed into messages writing your
 is sane, and if there is a runtime error in your update it will show up in your tests. 
  
 
-### Testing code with side-effects by mocking 
+## Testing code with side-effects by mocking 
 
 So, if you want to test the complete machinery, it doesnt matter what language or tool you use,
 you need to choose between using a 'mock' interpreter for your side-effects or actually run them.
@@ -552,9 +569,7 @@ class UpdateTest : StringSpec() {
 
 ```
 
-
-
-### Working with lists
+## Working with lists
 
 Lists present unique challenges, especially on Android. 
 
