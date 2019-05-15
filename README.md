@@ -59,18 +59,11 @@ something new and exciting to learn and it will empower you to write easy, fast 
 applications. I am working on a tutorial in a series of blog posts that you can find on my [blog](https://boby.dev)
 
 
-Elmo is built on top of the following existing technologies and concepts:
-
-* [Kotlin](https://kotlinlang.org/docs/reference/)
-* [RxJava](https://github.com/ReactiveX/RxJava)
-* [Elm](https://elm-lang.org/) (conceptually)
-* [Redux](https://redux.js.org/) (conceptually)
-* [Epoxy](https://github.com/airbnb/epoxy) (optional but recommended)
-
 
 
 #### Table of contents
 
+* [Technologies and concepts](#technologies-and-concepts)
 * [Installation](#installation)
 * [Model](#Model)
 * [Update](#Update)
@@ -87,9 +80,17 @@ Elmo is built on top of the following existing technologies and concepts:
 
 
 
+## Technologies and concepts
 
+Elmo is built on top of the following existing technologies and concepts:
 
+* [Kotlin](https://kotlinlang.org/docs/reference/)
+* [RxJava](https://github.com/ReactiveX/RxJava)
+* [Elm](https://elm-lang.org/) (conceptually)
+* [Redux](https://redux.js.org/) (conceptually)
+* [Epoxy](https://github.com/airbnb/epoxy) (optional but recommended)
 
+Elmo is best consumed with Kotlin. It is possible to use it from java, but not having a language support for immutable data classes and basic pattern matching will cause you a lot of trouble.
 
 
 ## Installation
