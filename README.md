@@ -346,8 +346,8 @@ class WalletUpdate : Update<WalletModel, Msg, Cmd> {
 ## Multithreading
 
 RxJava is so popular with Android developers because it makes switching computation contexts easy.
-Elmo makes it even easier. What most of you want is to render your model on your main thread,
-and do model updates and execute commands concurrently, so you will not ever have to block.
+Elmo makes it even easier. What most of us want is to render our model on the main thread,
+do model updates and execute side-effects concurrently.
 
 So to have a Update that asynchronously do updates and executes commands you can do:
 
