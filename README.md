@@ -313,6 +313,36 @@ class WalletUpdate : Update<WalletModel, Msg, Cmd> {
 
 ```    
 
+### Multithreading
+
+RxJava is so popular with Android developers because it makes switching computation contexts easy.
+Elmo makes it even easier. What most of you want is to render your model on your main thread,
+and do model updates and execute commands concurrently, so you will not ever have to block.
+
+So to have a Update that asynchronously do updates and executes commands you can do:
+
+```kotlin
+interface Update<Model, Msg> : dev.boby.elmo.pure.Update<Model, Msg> {
+    override val updateScheduler: Scheduler
+        get() = Schedulers.io()
+}
+```
+
+And to have a View that performs rendering on the main thread 
+
+```kotlin
+interface View<Model> : dev.boby.elmo.View<Model> {
+    override val viewScheduler: Scheduler
+        get() = AndroidSchedulers.mainThread()
+}
+```
+
+
+You can then extend this interfaces everywhere in your app.
+
+> AndroidSchedulers.mainThread() is courtesy of the [RxAndroid](https://github.com/ReactiveX/RxAndroid) authors
+
+
 License
 -------
 

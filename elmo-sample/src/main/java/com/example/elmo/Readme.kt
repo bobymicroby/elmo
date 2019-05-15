@@ -6,6 +6,7 @@ import io.reactivex.Observable
 
 
 import io.reactivex.Scheduler
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 import io.reactivex.schedulers.Schedulers
 import java.lang.RuntimeException
@@ -27,14 +28,11 @@ sealed class Cmd {
 interface Update<Model, Msg> : dev.boby.elmo.pure.Update<Model, Msg> {
     override val updateScheduler: Scheduler
         get() = Schedulers.io()
-
 }
 
 interface View<Model> : dev.boby.elmo.View<Model> {
     override val viewScheduler: Scheduler
-        get() = Schedulers.io()
-
-
+        get() = AndroidSchedulers.mainThread()
 }
 
 class WalletUpdate : Update<WalletModel, Msg> {
