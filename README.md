@@ -342,9 +342,218 @@ You can then extend this interfaces everywhere in your app.
 > AndroidSchedulers.mainThread() is courtesy of the [RxAndroid](https://github.com/ReactiveX/RxAndroid) authors
 
 
-### Testing
+### Testing pure code
 
-TODO
+
+
+
+Testing pure `Update` is pretty straightforward. We can just pass a test model and a message to the update function and assert we have the correct response.
+This is why it is very important the update function is kept [referentially transparent](https://en.wikipedia.org/wiki/Referential_transparency),
+If you are using immutable model and not doing any side-effects it should be, so tests will come by easy. In future versions
+elmo will have a linter that warn you if your update function is not pure.
+
+Example:
+
+```kotlin
+class WalletUpdate : Update<WalletModel, Msg> {
+
+    override fun update(msg: Msg, model: WalletModel): WalletModel {
+        return when (msg) {
+            is Msg.Receive -> model.copy(cents = model.cents + msg.cents)
+            is Msg.Spend -> model.copy(cents = model.cents - msg.cents)
+        }
+    }
+}
+
+class Test {
+    @Test
+    fun sanity() {
+        val update = WalletUpdate()
+        val initialState = WalletModel("Richie Rich", 0)
+        val richer = update.update(Msg.Receive(100), initialState)
+        assertTrue(richer.cents == 100L)
+        val poorer = update.update(Msg.Spend(100), richer)
+        assertTrue(poorer == initialState)
+    }
+}
+
+```
+
+### Testing code with side-effects in a pure way
+
+Testing asynchronous side-effects is always hard and the test results struggle to reach 100% reliability.
+Some languages and tools make it reasonable enough. Elmo allows you to test your logic without executing
+and mocking your side-effects, but it makes it easy if you want to do so.
+
+Let's see how you can test side-effecting code without executing any side-effects. This update bellow
+is supposed to retry only once after an error. 
+
+
+```kotlin
+data class WalletModel(val cents: Long, val canRetry: Boolean)
+sealed class Msg {
+    data class BankResponse(val result: Result<Long, Long>) : Msg()
+}
+sealed class Cmd {
+    data class RequestFromBankApi(val cents: Long) : Cmd()
+}
+
+class Update : dev.boby.elmo.effect.Update<WalletModel, Msg, Cmd> {
+    override fun update(msg: Msg, model: WalletModel): Return<WalletModel, Cmd> {
+        return when (msg) {
+            is Msg.BankResponse -> {
+                when (msg.result) {
+                    is Ok -> Pure(model.copy(canRetry = true, cents = model.cents + msg.result.value))
+                    is Err -> if (model.canRetry) {
+                        Effect(model.copy(canRetry = false), Cmd.RequestFromBankApi(msg.result.error))
+                    } else {
+                        Pure(model)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Test
+fun shouldRetryOnlyOnce() { 
+
+            val initialState = WalletModel(cents = 0, canRetry = true);
+            val errRes = Msg.BankResponse(Err(100))
+            val update = Update()
+            
+            val r1 = update.update(errRes, initialState)
+            val r2 = update.update(errRes, r1.model)
+
+            r1 shouldBe Effect(WalletModel(cents = 0, canRetry = false), Cmd.RequestFromBankApi(100))
+            r2 shouldBe Pure(WalletModel(cents = 0, canRetry = false))
+            
+            
+       }
+
+
+```
+
+Since exceptions from commands are always transformed into messages writing your tests this
+is sane, and if there is a runtime error in your update it will show up in your tests. 
+ 
+
+### Testing code with side-effects by mocking 
+
+So, if you want to test the complete machinery, it doesnt matter what language or tool you use,
+you need to choose between using a 'mock' interpreter for your side-effects or actually run them.
+Running them can be slow and unpredictable if you are making network calls.
+The example bellow can be easily and reliably tested as shown in *Testing code with side-effects in a pure way*, but
+there is nothing stopping you to follow the example bellow.
+
+
+This example is very involved, and I am working on easy to follow tutorial in a series of blog posts.
+
+Example: 
+
+```kotlin
+
+sealed class Msg {
+    data class RequestMoney(val requestedAmount: Long) : Msg()
+    data class BankResponse(val result: Result<BankError, Long>) : Msg()
+    data class Error(val errorMessage: String) : Msg()
+}
+
+sealed class Cmd {
+    data class RequestFromBankApi(val cents: Long) : Cmd()
+}
+
+interface CommandInterpreter<Message, Command> {
+    fun call(cmd: Command): Observable<out Message>
+}
+
+class TestInterpreter(private val shouldThrow: Boolean) : CommandInterpreter<Msg, Cmd> {
+    override fun call(cmd: Cmd): Observable<out Msg> {
+        return when (cmd) {
+            is Cmd.RequestFromBankApi -> Observable.fromCallable {
+                if (shouldThrow) {
+                    throw  RuntimeException("Bang")
+                } else {
+                    Msg.BankResponse(Ok(cmd.cents))
+                }
+            }
+        }
+    }
+}
+
+class TestView<Model>(override val viewScheduler: Scheduler) : View<Model> {
+    val models = CopyOnWriteArrayList<Model>()
+    override fun view(model: Model) {
+        models.add(model)
+    }
+}
+
+
+
+class Update(override val updateScheduler: Scheduler,
+             private val interpreter: CommandInterpreter<Msg, Cmd>) : dev.boby.elmo.effect.Update<WalletModel, Msg, Cmd> {
+
+    override fun update(msg: Msg, model: WalletModel): Return<WalletModel, Cmd> {
+        return when (msg) {
+            is Msg.BankResponse -> {
+                when (msg.result) {
+                    is Ok -> Pure(model.copy(canRetry = true, cents = model.cents + msg.result.value))
+                    is Err -> if (model.canRetry) {
+                        Effect(model.copy(canRetry = false), Cmd.RequestFromBankApi(msg.result.error.requestedAmount))
+                    } else {
+                        Pure(model.copy(error = msg.result.error.errorMessage))
+                    }
+                }
+            }
+            is Msg.RequestMoney -> {
+                Effect(model, Cmd.RequestFromBankApi(msg.requestedAmount))
+            }
+            is Msg.Error -> {
+                Pure(model.copy(error = msg.errorMessage))
+            }
+        }
+    }
+
+    override fun call(cmd: Cmd): Observable<out Msg> {
+        return interpreter.call(cmd)
+    }
+
+    override fun onUnhandledError(cmd: Cmd, t: Throwable): Msg {
+        return Msg.Error("Unknown error occurred")
+    }
+}
+
+
+class UpdateTest : StringSpec() {
+    val initial = Pure(WalletModel(cents = 0, canRetry = true, error = null))
+    val sameThreadScheduler = Schedulers.trampoline()
+    val notThrowingInterpreter = TestInterpreter(shouldThrow = false)
+    val throwingInterpreter = TestInterpreter(shouldThrow = true)
+
+    init {
+        "If there is no error while processing a command, the request should succeed" {
+            val testView = TestView<WalletModel>(sameThreadScheduler)
+            val sandbox = Sandbox.create(initial, Update(sameThreadScheduler, notThrowingInterpreter), testView)
+            sandbox.accept(Msg.RequestMoney(100))
+
+            testView.models.last() shouldBe WalletModel(100, true, null)
+            sandbox.dispose()
+
+        }
+        "If there is unhandled error while processing a command, the request should fail" {
+            val testView = TestView<WalletModel>(sameThreadScheduler)
+            val sandbox = Sandbox.create(initial, Update(sameThreadScheduler, throwingInterpreter), testView)
+            sandbox.accept(Msg.RequestMoney(100))
+
+            testView.models.last() shouldBe WalletModel(0, true, "Unknown error occurred")
+            sandbox.dispose()
+
+        }
+    }
+}
+
+```
+
 
 
 License
