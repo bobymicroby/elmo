@@ -58,7 +58,7 @@ unidirectional data flow architectures , immutable state-containers and the lot,
 something new and exciting to learn and it will empower you to write easy, fast and thread-safe UI 
 applications.
 
-
+I am working on a tutorial in a series of blog posts that you can find on my [blog](https://boby.dev)
 
 
 ## Installation
@@ -418,7 +418,7 @@ class Update : dev.boby.elmo.effect.Update<WalletModel, Msg, Cmd> {
 @Test
 fun shouldRetryOnlyOnce() { 
 
-            val initialState = WalletModel(cents = 0, canRetry = true);
+            val initialState = WalletModel(cents = 0, canRetry = true)
             val errRes = Msg.BankResponse(Err(100))
             val update = Update()
             
