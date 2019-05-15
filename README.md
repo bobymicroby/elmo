@@ -60,6 +60,16 @@ applications.
 
 I am working on a tutorial in a series of blog posts that you can find on my [blog](https://boby.dev)
 
+
+Elmo is built on top of the following existing technologies and concepts:
+
+* [Kotlin](https://kotlinlang.org/docs/reference/)
+* [RxJava](https://github.com/ReactiveX/RxJava)
+* [Elm](https://elm-lang.org/) (conceptually)
+* [Redux](https://redux.js.org/) (conceptually)
+* [Epoxy](https://github.com/airbnb/epoxy) (optional but recommended)
+
+
 * [Installation](#installation)
 * [Model](#Model)
 * [Update](#Update)
