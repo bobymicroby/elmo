@@ -140,8 +140,8 @@ saving you from bugs.
 
 sealed class Msg { // The  base `Message` sealed class
 
-    data class Receive(val cents: Long) : Msg()   ;// Receive message extends the base class
-    data class Spend(val cents: Long) : Msg()    ;// So does and the Spend
+    data class Receive(val cents: Long) : Msg()     // Receive message extends the base class
+    data class Spend(val cents: Long) : Msg()      // So does and the Spend
 }
 
 ```
