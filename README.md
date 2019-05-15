@@ -61,10 +61,6 @@ applications.
 
 
 
-* [Installation](#installation)
-
-
-
 ## Installation
 
 Just add the dependency to your project `build.gradle` file:
