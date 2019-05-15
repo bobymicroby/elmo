@@ -337,10 +337,14 @@ interface View<Model> : dev.boby.elmo.View<Model> {
 }
 ```
 
-
 You can then extend this interfaces everywhere in your app.
 
 > AndroidSchedulers.mainThread() is courtesy of the [RxAndroid](https://github.com/ReactiveX/RxAndroid) authors
+
+
+### Testing
+
+TODO
 
 
 License
