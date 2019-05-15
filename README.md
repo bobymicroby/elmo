@@ -193,12 +193,6 @@ side-effects and handle errors. In order to do so, there are three things that y
 - Return either a `Pure(model)`  or `Effect(model,command)`
 
 
-> You can think of Pure like it is a pair(model,`none`) and of Effect like it is a pair(model,command).
-
-
->[RxJava](https://github.com/ReactiveX/RxJava) `Observables` can be [created](https://github.com/ReactiveX/RxJava/wiki/Creating-Observables)
-from most standard types and many http-clients, database drivers, etc, provide RxJava 
-adapters. If you are new to RxJava elmo can help you use it while you learn it.
 
 
 *Example*:
@@ -238,6 +232,14 @@ class WalletUpdate : effect.Update<WalletModel, Msg, Cmd> {
 }
 
 ```
+
+> You can think of Pure like it is a pair(model,`none`) and of Effect like it is a pair(model,command).
+
+
+>[RxJava](https://github.com/ReactiveX/RxJava) `Observables` can be [created](https://github.com/ReactiveX/RxJava/wiki/Creating-Observables)
+from most standard types and many http-clients, database drivers, etc, provide RxJava 
+adapters. If you are new to RxJava elmo can help you use it while you learn it.
+
 
 
 ### Error handling
