@@ -56,9 +56,7 @@ For those familiar with React, Elmo will feel a lot like Redux with fancy async 
 those familiar with Elm, well it will look a lot like Elm. And for those still unfamiliar with 
 unidirectional data flow architectures , immutable state-containers and the lot, it will be 
 something new and exciting to learn and it will empower you to write easy, fast and thread-safe UI 
-applications.
-
-I am working on a tutorial in a series of blog posts that you can find on my [blog](https://boby.dev)
+applications. I am working on a tutorial in a series of blog posts that you can find on my [blog](https://boby.dev)
 
 
 Elmo is built on top of the following existing technologies and concepts:
@@ -69,6 +67,9 @@ Elmo is built on top of the following existing technologies and concepts:
 * [Redux](https://redux.js.org/) (conceptually)
 * [Epoxy](https://github.com/airbnb/epoxy) (optional but recommended)
 
+
+
+#### Table of contents
 
 * [Installation](#installation)
 * [Model](#Model)
