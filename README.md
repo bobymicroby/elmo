@@ -87,12 +87,12 @@ Just add the dependency to your project `build.gradle` file:
 
 ```groovy
 dependencies {
-  implementation 'dev.boby.elmo:elmo:x.y.z'
+  implementation 'dev.boby.elmo:elmo:2.y.z'
 }
 
 ```
 
-Replace `x` and `y` and `z` with the latest version number: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo)
+Replace and `y` and `z` with the latest version number: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo/badge.svg)](https://maven-badges.herokuapp.com/maven-central/dev.boby.elmo/elmo)
 
 
 
