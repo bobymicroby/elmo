@@ -43,6 +43,7 @@ inline fun <A, B> Maybe<A>.map(f: (value: A) -> B): Maybe<B> {
  * return new maybe containing [B], resulting from calling [f] with the value [A] of this maybe.
  *
  * Example:
+ *
  * Just(1).flatMap { a -> if (a==1) Just(2) else Nothing } == Just(2)
  * Just(2).flatMap { a -> if (a==1) Just(2) else Nothing } == Nothing
  * Nothing.flatMap { a -> if (a==1) Just(2) else Nothing } == Nothing
@@ -117,6 +118,7 @@ inline fun <A, B, E> Result<E, A>.map(f: (value: A) -> B): Result<E, B> {
  * return new [Result] produced by calling [f]  with the [A] value of this result.
  *
  * Example:
+ *
  * Ok(1).flatMap { a -> if (a==1) Ok(2) else Err("not 1") } == Ok(2)
  * Ok(2).flatMap { a -> if (a==1) Ok(2) else Err("not 1") } == Err("not 1")
  * Err("Snap!").flatMap { a -> if (a==1) Ok(2) else Err("not 1") ) == Err("Snap!")
@@ -196,4 +198,52 @@ fun <A, E> Result<E, A>.getOrNull(): A? {
     }
 }
 
+
+
+/**
+ *
+ * The return type of the side-effecting [dev.boby.elmo.effect.Update] containing:
+ *
+ *  -- in its [Pure] variant just the updated model
+ *  -- in its [Effect] variant the updated model and a command to execute
+ */
+sealed class Return<out Model, out Command> {
+    abstract val model: Model
+}
+
+/**
+ * You can think of the pure variant of [Result] as a type alias for pair(model,none)
+ */
+data class Pure<Model>(override val model: Model) : Return<Model, kotlin.Nothing>()
+
+/**
+ * You can think of the effect variant of [Result] as a type alias for pair(model,cmd)
+ */
+data class Effect<Model, Command>(override val model: Model, val cmd: Command) : Return<Model, Command>()
+
+/**
+ * Syntactic sugar for creating a [Pure], and we all now that too much sugar is bad for your
+ * health.
+ *
+ * Example:
+ *
+ * model + none == Pure(model)
+ *
+ */
+operator fun <Model, Command> Model.plus(@Suppress("UNUSED_PARAMETER") none: None): Return<Model,
+        Command> = Pure(this)
+
+/* Marks that there are no commands.*/
+object None
+
+/**
+ * Syntactic sugar for creating a [Effect], and we all now that too much sugar is bad for
+ * your health.
+ *
+ * Example:
+ *
+ * model + Cmd.Increment == Effect(model,Cmd.Increment)
+ *
+ */
+operator fun <Model, Command> Model.plus(that: Command): Return<Model, Command> = Effect(this, that)
 

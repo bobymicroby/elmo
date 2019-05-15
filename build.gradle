@@ -8,7 +8,6 @@ buildscript {
             'androidPlugin': '3.4.0',
             'androidTools' : '26.4.0',
 
-            'butterknife'  : '8.8.1',
     ]
 
     ext.deps = [
@@ -17,19 +16,15 @@ buildscript {
                     'plugin': "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}",
                     'stdlib': "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}"
             ],
-            'butterknife': [
-                    'runtime' : "com.jakewharton:butterknife:${versions.butterknife}",
-                    'compiler': "com.jakewharton:butterknife-compiler:${versions.butterknife}"
-            ],
-            'lint'       : [
-                    'core'  : "com.android.tools.lint:lint:${versions.androidTools}",
-                    'api'   : "com.android.tools.lint:lint-api:${versions.androidTools}",
-                    'checks': "com.android.tools.lint:lint-checks:${versions.androidTools}",
-                    'tests' : "com.android.tools.lint:lint-tests:${versions.androidTools}",
-            ],
             'dokka'      : 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.18',
             rxjava       : 'io.reactivex.rxjava2:rxjava:2.2.8',
             rxandroid    : 'io.reactivex.rxjava2:rxandroid:2.1.1',
+            'androidx'   : [
+                    'material': 'com.google.android.material:material:1.1.0-alpha06',
+                    'ktx'     : 'androidx.core:core-ktx:1.0.1'
+
+            ],
+            junit        : 'junit:junit:4.12',
 
     ]
 
