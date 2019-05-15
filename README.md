@@ -190,7 +190,7 @@ side-effects and handle errors. In order to do so, there are three things that y
 
 - Describe how to get `Observable<Msg>` from a `Command`
 - Provide a way to transform  unhandled errors back to `Messages`.
-- Return either a `Pure(model)`  or `Effect(model,command)`
+- Return either a `Pure(model)`  or `Effect(model,command)` when calling the `update` method
 
 
 
