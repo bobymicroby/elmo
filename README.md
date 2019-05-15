@@ -197,8 +197,7 @@ side-effects and handle errors. In order to do so, there are three things that y
 
 *Example*:
 
-```kotlin 
-
+```kotlin
 class WalletUpdate : effect.Update<WalletModel, Msg, Cmd> {
 
     override fun update(msg: Msg, model: WalletModel): Return<WalletModel, Cmd> {
@@ -230,7 +229,6 @@ class WalletUpdate : effect.Update<WalletModel, Msg, Cmd> {
 
 
 }
-
 ```
 
 > You can think of Pure like it is a pair(model,`none`) and of Effect like it is a pair(model,command).
@@ -554,6 +552,30 @@ class UpdateTest : StringSpec() {
 
 ```
 
+
+
+### Working with lists
+
+Lists present unique challenges, especially on Android. 
+
+- There are no persistent ( immutable ) collections present so updating  them  in place will introduce 
+concurrency problems
+- When you render them, you must use RecyclerViews, otherwise you risk OOM , GC pauses and all other 
+things that steal those precious fps and make your apps unresponsive. Replacing the RecyclerView
+collection  every time your Update provides you with a new list means you need to use DiffUtil 
+to calculate the difference between the old and the new list, otherwise the fps gained by using 
+a RecyclerView are lost. 
+
+The first problem is easily solvable by using the [pcollections](https://github.com/hrldcpr/pcollections)
+lib which will provide you with immutable collections. Let's hope in the near future kotlin stdlib
+will provide us with persistent and immutable collections.
+
+The second problem is already solved by the folks at AirBnb with [epoxy](https://github.com/airbnb/epoxy).
+It is incredible library simplifying working with  RecyclerViews so much, that in my opinion it
+should be part of the android stdlib.
+
+Google already are making steps towards a functional  UI programming model with [Jetpack Compose](https://developer.android.com/jetpack/compose)
+It is still in alpha but when it is production ready it will be a perfect match for Elmo's views.
 
 
 License
