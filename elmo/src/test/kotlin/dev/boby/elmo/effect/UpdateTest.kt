@@ -176,6 +176,18 @@ class UpdateTest : StringSpec() {
 
         }
 
+        "Subscriptions must work" {
+            val view = TestView<State>(Schedulers.trampoline())
+            val update = DelayingCommandsUpdate(0, Schedulers.trampoline())
+            val seed = Pure(State(0))
+            val subscriptions = just(Msg.Incremented, Msg.Incremented)
+            val sandbox = Sandbox.create(seed, update, view, subscriptions)
+
+            view.models shouldBe listOf(State(0), State(1), State(2))
+            sandbox.dispose()
+
+        }
+
 
     }
 

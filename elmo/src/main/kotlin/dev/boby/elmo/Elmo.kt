@@ -65,17 +65,20 @@ abstract class Sandbox<Message> private constructor() : Disposable {
          *             effect right away use Pure(model), otherwise use Effect(model,cmd)
          * @param update The [dev.boby.elmo.effect.Update] which will be used in the program's update event-loop
          * @param view The [View] which will receive [Model] updates
+         * @param subscriptions A stream of [Message] to feed into the sandbox.
          *
          */
         fun <Model, Message, Command> create(
                 initial: Return<Model, Command>,
                 update: dev.boby.elmo.effect.Update<Model, Message, Command>,
-                view: View<Model>
+                view: View<Model>,
+                subscriptions: Observable<out Message> = Observable.empty()
         ): Sandbox<Message> {
 
             val messages = BehaviorSubject.create<Message>().toSerialized() // BehaviorSubject is used because otherwise the result from the first command will be lost
             val disposables = CompositeDisposable()
             val eventLoop = messages
+                    .mergeWith(subscriptions.subscribeOn(update.updateScheduler))
                     .observeOn(update.updateScheduler)
                     .scan(initial) { computation, msg -> update.update(msg, computation.model) }
                     .doOnNext { computation ->
@@ -123,16 +126,18 @@ abstract class Sandbox<Message> private constructor() : Disposable {
          * @param update The [dev.boby.elmo.pure.Update] which will be used in the program's update
          * event-loop
          * @param view The [View] which will receive [Model] updates
-         *
+         * @param subscriptions A stream of [Message] to feed into the sandbox.
          */
         fun <Model, Message> create(
                 initial: Model,
                 update: dev.boby.elmo.pure.Update<Model, Message>,
-                view: View<Model>
+                view: View<Model>,
+                subscriptions: Observable<out Message> = Observable.empty()
         ): Sandbox<Message> {
 
             val messages = PublishSubject.create<Message>().toSerialized()
             val disposable = messages
+                    .mergeWith(subscriptions.subscribeOn(update.updateScheduler))
                     .observeOn(update.updateScheduler)
                     .scan(initial) { model, msg -> update.update(msg, model) }
                     .observeOn(view.viewScheduler)

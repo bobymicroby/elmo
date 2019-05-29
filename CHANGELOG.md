@@ -2,6 +2,14 @@ Change Log
 ==========
 
 
+Version 2.1.0 *(29 May 2019)*
+----------------------------
+
+You can now create a Sandbox with Subscription. The subscription represent a stream of messages
+and provide the Sandbox with alternate way of `accept`ing new Messages.
+
+
+
 
 Version 2.0.0 *(15 May 2019)*
 ----------------------------

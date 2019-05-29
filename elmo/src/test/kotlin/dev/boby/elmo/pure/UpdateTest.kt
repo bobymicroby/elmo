@@ -2,12 +2,11 @@ package dev.boby.elmo.pure
 
 import dev.boby.elmo.Sandbox
 import dev.boby.elmo.testutil.TestView
-
-
-
 import io.kotlintest.properties.Gen
 import io.kotlintest.properties.forAll
+import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
+import io.reactivex.Observable.just
 import io.reactivex.Scheduler
 import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.locks.LockSupport
@@ -76,6 +75,17 @@ class UpdateTest : StringSpec() {
                     expectedCounter == counter
                 }
             }
+        }
+
+        "Subscriptions must work" {
+            val view = TestView<State>(Schedulers.trampoline())
+            val update = DelayingCommandsUpdate(0, Schedulers.trampoline())
+            val subscriptions = just(Msg.Increment, Msg.Increment)
+            val sandbox = Sandbox.create(State(0), update, view, subscriptions)
+
+            view.models shouldBe listOf(State(0), State(1), State(2))
+            sandbox.dispose()
+
         }
 
 
