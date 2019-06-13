@@ -9,18 +9,6 @@ Elmo is the Android framework from Badge Labs that I use for nearly all product 
 
 Elmo will help you write your android applications in a modern, unidirectional and functional way. You will have easy and great tests for free, and you will never have to deal with concurrency and async issues.
 
-Elmo is a bit different from all other "Elm Architecture for Android" thingies out there:
-
-- library not a framework 
-- choose between pure and side effecting 'update'
-- use your own `cmd` and `msg` types
-- subscriptions
-- correct and property based tested code
-- disposable sandboxes
-- `result` and `maybe` types
-- great tutorial
-
-
 I am a firm believer in functional programming, and I know that for many Android developers this is still uncharted territory, but if you keep reading until the end, I promise you that you will rise again, harder and stronger! For what is immutable my never change!
 
 
@@ -71,6 +59,8 @@ something new and exciting to learn and it will empower you to write easy, fast 
 applications. 
 
 
+
+
 ##### You can find a tutorial about how to use Elmo on my [blog](https://boby.dev/posts/fp-for-the-ui-part-1/)
 
 
@@ -106,6 +96,18 @@ Elmo is built on top of the following existing technologies and concepts:
 * [Epoxy](https://github.com/airbnb/epoxy) (optional but recommended)
 
 Elmo is best consumed with Kotlin. It is possible to use it from java, but not having a language support for immutable data classes and basic pattern matching will cause you a lot of trouble.
+
+What makes Elmo different from all other "Elm Architecture for Android" thingies out there:
+
+- library not a framework 
+- choose between pure and side effecting 'update'
+- use your own `cmd` and `msg` types
+- subscriptions
+- correct and property based tested code
+- disposable sandboxes
+- `result` and `maybe` types
+- great tutorial
+
 
 
 ## Installation
