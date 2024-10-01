@@ -2,7 +2,6 @@
 
 <img src="logo.png" width="170">
 
-[![Build Status](https://travis-ci.com/bobymicroby/elmo.svg?branch=master)](https://travis-ci.com/bobymicroby/elmo)
 
 
 Elmo is the Android framework from Badge Labs that I use for nearly all product development at [Badge](https://badge-app.com). When I began creating Elmo, my goal was not to create yet another architecture pattern like MVP, MVC,MVVM, it was to allow even a single person to deliver a large scale application easier, faster, and to have fun in the process. 
